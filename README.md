@@ -1,29 +1,4 @@
-# Behavior Pack Template
-Helpful template repository for building [Behavior Packs](https://wiki.bedrock.dev/scripting/scripting-intro) in TypeScript.
+# anti-tpmultiplayer
+This addon will block TP Multiplayer (formerly named EggNet) spam/ad bots from joining your worlds and servers. 
 
-## Setup
-1. [Create a new repository using this template](https://github.com/new?template_name=behavior-pack-template&template_owner=All-Realms-Are-Safe)
-2. Run `npm install`
-
-You now have great intellisense to make development quick and easy!
-
-## Usage/Tools
-The structure of this project follows the [TypeScript scripting tutorial](https://wiki.bedrock.dev/scripting/typescript) with some additional tools to make your coding environment less annoying
-- `npm run build` will compile your TypeScript code inside `src/`, output to `scripts/` and create a `.mcpack` file in the root of this project.
-
-The .mcpack created from this template looks like:
-```
-- Template_Behavior_Pack_v1.0.0
-  - scripts
-    - main.js
-  - manifest.json
-  - pack_icon.png
-```
-
-- `npm run pack` will create a `.mcpack` file in the root of this project.
-
-## Roadmap
-- [ ] Auto `/reload` script for development on worlds
-- ~~[ ] Auto update version/uuid in `build` script~~
-- [ ] webpack/esbuild stuff?
-- ~~[ ] Workflows to run tests and bump version?~~
+For any problems/concerns regarding this addon such as false flagging or unintentional behavior please [Create an Issue](https://github.com/All-Realms-Are-Safe/anti-tpmultiplayer/issues/new). You can also reach out to us in https://discord.gg/aras

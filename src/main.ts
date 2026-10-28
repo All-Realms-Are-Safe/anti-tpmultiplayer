@@ -18,31 +18,33 @@ function stopWaiting(displayName: string): void {
     awaitingSpawn.delete(displayName);
 };
 
-beforeEvents.asyncPlayerJoin.subscribe(async (ev) => {
-    const { name, persistentId } = ev;
+world.afterEvents.worldLoad.subscribe(() => {
+    beforeEvents.asyncPlayerJoin.subscribe(async (ev) => {
+        const { name, persistentId } = ev;
 
-    // Persistent ID is a value that can be used to track an account across multiple different sessions (platforms).
-    // A missing ID is a clear sign the account is not legitimate. Gamertags also can
-    // never have quotes, handling this now will prevent errors from trying to kick later.
-    if (!persistentId?.trim() || name.includes('"')) {
-        log(`Refused "${name}": no persistent ID`);
-        ev.disallowJoin(kickMessage);
-        return;
-    };
-
-    ev.allowJoin();
-
-    const handle = system.runTimeout(() => {
-        awaitingSpawn.delete(name);
-        log(`Kicking "${name}" because they failed to spawn in ${spawnTimeout} seconds`);
-        try {
-            world.getDimension("overworld").runCommand(`kick "${name}" ${kickMessage}`);
-        } catch (error) {
-            log(`Failed to kick "${name}" - ${error}`);
+        // Persistent ID is a value that can be used to track an account across multiple different sessions (platforms).
+        // A missing ID is a clear sign the account is not legitimate. Gamertags also can
+        // never have quotes, handling this now will prevent errors from trying to kick later.
+        if (!persistentId?.trim() || name.includes('"')) {
+            log(`Refused "${name}": no persistent ID`);
+            ev.disallowJoin(kickMessage);
+            return;
         };
-    }, spawnTimeout);
 
-    awaitingSpawn.set(name, handle);
+        ev.allowJoin();
+
+        const handle = system.runTimeout(() => {
+            awaitingSpawn.delete(name);
+            log(`Kicking "${name}" because they failed to spawn in ${spawnTimeout} seconds`);
+            try {
+                world.getDimension("overworld").runCommand(`kick "${name}" ${kickMessage}`);
+            } catch (error) {
+                log(`Failed to kick "${name}" - ${error}`);
+            };
+        }, spawnTimeout);
+
+        awaitingSpawn.set(name, handle);
+    });
 });
 
 // Cancel a player's timeout when they successfully spawn. Does not include respawns

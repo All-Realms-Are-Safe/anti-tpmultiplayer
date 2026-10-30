@@ -1,37 +1,45 @@
 import { beforeEvents } from "@minecraft/server-admin";
 import { system, world } from "@minecraft/server";
 
-/** 20 second timeout before a player is treated like a bot. This gives plenty of time */
+/** 20 second timeout before a player is treated like a bot. */
 const spawnTimeout = 400;
 const awaitingSpawn = new Map<string, number>();
 const kickMessage = "Failed to verify your account. discord.gg/aras";
 
-function log(message: string): void {
+/**
+ * Logs a message with the anti-tp prefix.
+ * @param {string} message - The message to log.
+ */
+function log(message: string) {
     console.warn(`[anti-tp] ${message}`);
-};
+}
 
-/** Stop waiting for a player to spawn */
-function stopWaiting(displayName: string): void {
-    const handle = awaitingSpawn.get(displayName);
+/**
+ * Stop waiting for a player by their name and clear their active timeout.
+ * @param {string} name - The player's name (available in join, spawn and leave events).
+ */
+function stopWaiting(name: string) {
+    const handle = awaitingSpawn.get(name);
     if (handle === undefined) return;
     system.clearRun(handle);
-    awaitingSpawn.delete(displayName);
-};
+    awaitingSpawn.delete(name);
+}
 
 world.afterEvents.worldLoad.subscribe(() => {
     beforeEvents.asyncPlayerJoin.subscribe(async (ev) => {
         const { name, persistentId } = ev;
 
-        // Persistent ID is a value that can be used to track an account across multiple different sessions (platforms).
-        // A missing ID is a clear sign the account is not legitimate. Gamertags also can
-        // never have quotes, handling this now will prevent errors from trying to kick later.
+        // Validate persistent ID and name
         if (!persistentId?.trim() || name.includes('"')) {
             log(`Refused "${name}": no persistent ID`);
             ev.disallowJoin(kickMessage);
             return;
-        };
+        }
 
         ev.allowJoin();
+
+        // Clear any existing active timeout for this name to prevent orphaned timers
+        stopWaiting(name);
 
         const handle = system.runTimeout(() => {
             awaitingSpawn.delete(name);
@@ -40,17 +48,21 @@ world.afterEvents.worldLoad.subscribe(() => {
                 world.getDimension("overworld").runCommand(`kick "${name}" ${kickMessage}`);
             } catch (error) {
                 log(`Failed to kick "${name}" - ${error}`);
-            };
+            }
         }, spawnTimeout);
 
         awaitingSpawn.set(name, handle);
     });
 });
 
-// Cancel a player's timeout when they successfully spawn. Does not include respawns
+// Cancel a player's timeout when they successfully spawn.
 world.afterEvents.playerSpawn.subscribe(({ player, initialSpawn }) => {
-    if (initialSpawn) stopWaiting(player.name);
+    if (initialSpawn) {
+        stopWaiting(player.name);
+    }
 });
 
-// Don't track player's who left
-world.afterEvents.playerLeave.subscribe(({ playerName }) => stopWaiting(playerName));
+// Don't track players who left.
+world.afterEvents.playerLeave.subscribe(({ playerName }) => {
+    stopWaiting(playerName);
+});

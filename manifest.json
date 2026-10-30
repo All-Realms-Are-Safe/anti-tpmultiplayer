@@ -4,7 +4,7 @@
         "name": "Anti TP Multiplayer",
         "description": "Blocks TP Multiplayer (formerly EggNet) spam/ad bots by refusing unverified accounts on Bedrock worlds and servers.",
         "uuid": "5895377e-8c7a-40ab-8e36-ba6b872c5133",
-        "version": "1.0.1",
+        "version": "1.1.0",
         "min_engine_version": "1.26.52"
     },
     "modules": [
